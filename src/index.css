@@ -5,6 +5,18 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  background: url(./img/bg-LR2.jpg) no-repeat fixed 50% 50%;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  -ms-filter: "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='./img/bg-LR2.jpg', sizingMethod='scale')";
+  background-size: cover;
+  background-color: grey;
+  min-height: 100%;
+  font-size: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 code {
