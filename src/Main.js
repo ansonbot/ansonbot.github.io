@@ -1,11 +1,12 @@
 import './Main.css';
+import { Link } from "react-router-dom";
 
 function Main() {
   return (
-    <div class="container">
+    <div class="main">
 
       <div id="main-content" class="transboxbg">
-        <p class="title">
+        <p class="main-title">
           <a href="https://ansonbot.github.io" target="_blank" rel="noreferrer" title="">
             Anson Liang
           </a>
@@ -31,10 +32,13 @@ function Main() {
               YoYoToronto
             </a>
           </li>
+          <li>
+            <Link to="/example">Test</Link>
+          </li>
         </ul>
       </div>
 
-      <div id="footer" class="transboxbg">
+      <div id="main-footer" class="transboxbg">
         <p>
           <a href="mailto:48@hotmail.co.jp" title="48@hotmail.co.jp">Email Anson</a>
         </p>

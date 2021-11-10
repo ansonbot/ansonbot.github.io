@@ -10,7 +10,7 @@
 }
 
 /* text */
-p, ul {
+.main p, ul {
   font-family: 'Rosario', Candara, Calibri, Segoe, "Segoe UI", Optima, Arial, sans-serif;
   font-variant: small-caps;
   color: white;
@@ -18,21 +18,21 @@ p, ul {
   padding: 0;
 }
 
-a {
+.main a {
   text-decoration: none;
   color: white;
 }
 
-a:hover {
+.main a:hover {
   font-weight: bold;
 }
 
-.title {
+.main .title {
   font-size: 30px;
 }
 
 /* page alignment */
-.container {
+.main {
   position: relative;
 }
 
@@ -44,7 +44,7 @@ a:hover {
   padding: 3px 5px;
 }
 
-#footer {
+#main-footer {
   position: fixed;
   left: 0px;
   bottom: 0px;
@@ -52,7 +52,7 @@ a:hover {
 }
 
 /* background box */
-.transboxbg {
+.main .transboxbg {
   background-color: rgba(0, 0, 0, 0.7);
 }
 

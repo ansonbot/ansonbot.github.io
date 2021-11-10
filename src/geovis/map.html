@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html>
+  <head>  
+	<title>GeoVisualization</title>
+	<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+	<meta charset="utf-8">
+	
+	<style>
+      html, body, #map-canvas {
+        height: 100%;
+        margin: 0px;
+        padding: 0px;
+        font-family: arial;
+      }
+      p {
+      	font-family: arial;
+      	font-size: 100%;
+      }
+      #btnContainer {
+        position: absolute;
+        bottom: 120px;
+        left: 50%;
+        margin-left: -35px;
+        /*width: 120px;*/
+        z-index: 5;
+        background-color: rgba(255,255,255,0.8);
+        padding: 5px;
+        border: 1px solid #999;
+      }
+      #slidebarContainer {
+        position: absolute;
+        bottom: 50px;
+        left: 50%;
+        margin-left: -200px;
+        width: 400px;
+        height: 30px;
+        z-index: 5;
+        background-color: rgba(255,255,255,0.8);
+        padding: 15px 35px 15px 35px;
+        border: 1px solid #999;
+      }
+      #slidebar label {
+	    position: absolute;
+	    width: 20px;
+	    margin-left: -10px;
+	    text-align: center;
+	    margin-top: 20px;
+  	  }
+      #cvsContainer {
+      	position: absolute;
+      	width: 300px;
+      	height: 80%;
+      	bottom: 40px;
+      	z-index: 4;
+        background-color: rgba(255,255,255,0.8);
+        padding: 15px;
+        border: 1px solid #999;
+      }
+/*      #slidebar {
+      	width: 395px;
+      }*/
+    </style>
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.bundle.min.js"></script>
+	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script> -->
+
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDE12fYtL9Bd6_L7BnG3RF0y1jdXuiwU-k"></script>
+
+	<script type="text/javascript">
+ 	//==========Google Maps Component START==========
+ 	var map;
+ 	var overlayArr = [];
+
+ 	USGSOverlay.prototype = new google.maps.OverlayView();
+
+ 	function initialize() {
+ 		var mapOptions = {
+ 			zoom: 11,
+ 			center: new google.maps.LatLng(43.7085,-79.3570)
+ 		};
+ 		map = new google.maps.Map(document.getElementById('map-canvas'),
+ 			mapOptions);
+
+ 		initOverlay();
+
+ 	}
+
+	// [START region_constructor]
+	/** @constructor */
+	function USGSOverlay(bounds, image, map, isHid = false) {
+
+	  // Initialize all properties.
+	  this.bounds_ = bounds;
+	  this.image_ = image;
+	  this.map_ = map;
+	  this.isHid_ = isHid;
+	  // Define a property to hold the image's div. We'll
+	  // actually create this div upon receipt of the onAdd()
+	  // method so we'll leave it null for now.
+	  this.div_ = null;
+
+	  // Explicitly call setMap on this overlay.
+	  this.setMap(map);
+	}
+	// [END region_constructor]
+
+	// [START region_attachment]
+	/**
+	 * onAdd is called when the map's panes are ready and the overlay has been
+	 * added to the map.
+	 */
+	 USGSOverlay.prototype.onAdd = function() {
+
+	 	var div = document.createElement('div');
+	 	div.style.border = 'none';
+	 	div.style.borderWidth = '0px';
+	 	div.style.position = 'absolute';
+
+	  // Create the img element and attach it to the div.
+	  var img = document.createElement('img');
+	  img.src = this.image_;
+	  img.style.width = '100%';
+	  img.style.height = '100%';
+	  div.appendChild(img);
+
+	  if (this.isHid_) { div.style.visibility = "hidden"; }
+
+	  this.div_ = div;
+
+	  // Add the element to the "overlayImage" pane.
+	  var panes = this.getPanes();
+	  panes.overlayImage.appendChild(this.div_);
+	};
+
+	USGSOverlay.prototype.draw = function() {
+
+	  // We use the south-west and north-east
+	  // coordinates of the overlay to peg it to the correct position and size.
+	  // To do this, we need to retrieve the projection from the overlay.
+	  var overlayProjection = this.getProjection();
+
+	  // Retrieve the south-west and north-east coordinates of this overlay
+	  // in LatLngs and convert them to pixel coordinates.
+	  // We'll use these coordinates to resize the div.
+	  var sw = overlayProjection.fromLatLngToDivPixel(this.bounds_.getSouthWest());
+	  var ne = overlayProjection.fromLatLngToDivPixel(this.bounds_.getNorthEast());
+
+	  // Resize the image's div to fit the indicated dimensions.
+	  var div = this.div_;
+	  div.style.left = sw.x + 'px';
+	  div.style.top = ne.y + 'px';
+	  div.style.width = (ne.x - sw.x) + 'px';
+	  div.style.height = (sw.y - ne.y) + 'px';
+	};
+
+	USGSOverlay.prototype.onRemove = function() {
+		this.div_.parentNode.removeChild(this.div_);
+	};
+
+	// [START region_hideshow]
+	// Set the visibility to 'hidden' or 'visible'.
+	USGSOverlay.prototype.hide = function() {
+		if (this.div_) {
+	    // The visibility property must be a string enclosed in quotes.
+	    this.div_.style.visibility = 'hidden';
+	}
+	};
+
+	USGSOverlay.prototype.show = function() {
+		if (this.div_) {
+			this.div_.style.visibility = 'visible';
+		}
+	};
+
+	USGSOverlay.prototype.toggle = function() {
+		if (this.div_) {
+			if (this.div_.style.visibility == 'hidden') {
+				this.show();
+			} else {
+				this.hide();
+			}
+		}
+	};
+
+	// Detach the map from the DOM via toggleDOM().
+	// Note that if we later reattach the map, it will be visible again,
+	// because the containing <div> is recreated in the overlay's onAdd() method.
+	USGSOverlay.prototype.toggleDOM = function() {
+		if (this.getMap()) {
+	    // Note: setMap(null) calls OverlayView.onRemove()
+	    this.setMap(null);
+	} 
+	  // else {
+	  //   this.setMap(this.map_);
+	  // }
+	};
+	// [END region_hideshow]
+
+	//==========Google Maps Component END==========
+
+	function initOverlay() {
+		var delay = 0;//3000;//1 seconds
+		setTimeout(function() {
+			var overlay6 = new USGSOverlay(bounds6, srcImage6, map, true);
+			var overlay5 = new USGSOverlay(bounds5, srcImage5, map, true);
+			var overlay4 = new USGSOverlay(bounds4, srcImage4, map, true);
+			var overlay3 = new USGSOverlay(bounds3, srcImage3, map, true);
+			var overlay2 = new USGSOverlay(bounds2, srcImage2, map, true);
+			var overlay1 = new USGSOverlay(bounds1, srcImage1, map);
+			overlayArr = [overlay1, overlay2, overlay3, overlay4, overlay5, overlay6];
+
+		},delay);
+	}
+
+	function toggleLayer() {
+		if (overlay == null) {
+			makeLayer();
+		} else {
+			overlay.toggleDOM();
+			makeLayer();
+		}
+	}
+
+	var opacity_tf = false;
+	var currentOpacityMod = 1;
+
+	function opacityChangeClick(){
+		if (opacity_tf == false) {
+			opacity_tf = true;
+		} else {
+			opacity_tf = false;
+		}
+		opacityChange();
+	}
+
+	function opacityChange() {
+		var imgArr = $("#map-canvas img[src*='OO_CLASSIFIED']");
+		if (opacity_tf) {
+			
+			for (var i = 0; i < imgArr.length; i++) {
+				$(imgArr[i]).css("opacity", parseFloat($(imgArr[i]).css("opacity")) * 0.4);
+			}
+			currentOpacityMod = 0.4;
+			//$("#map-canvas img[src*='OO_CLASSIFIED']").css("opacity","0.4");
+			//$("img[src*='colorramp']").css("opacity","0.4");
+			//opacity_tf = 1
+		} else {
+			for (var i = 0; i < imgArr.length; i++) {
+				$(imgArr[i]).css("opacity", parseFloat($(imgArr[i]).css("opacity")) / 0.4 );
+			}
+			currentOpacityMod = 1;
+			//$("img[src*='colorramp']").css("opacity","1");
+			//opacity_tf = 0;
+		}
+	}
+
+	//1  
+	var srcImage1 = "src/img/1986_OO_CLASSIFIED_Clip.png";
+	var swBound1 = new google.maps.LatLng(43.573546648, -79.645655506);
+	var neBound1 = new google.maps.LatLng(43.862986143, -79.106425959);
+	var bounds1 = new google.maps.LatLngBounds(swBound1, neBound1);
+
+	//2
+	var srcImage2 = "src/img/1991_OO_CLASSIFIED_Clip.png";
+	var swBound2 = new google.maps.LatLng(43.573546648, -79.645655506);
+	var neBound2 = new google.maps.LatLng(43.862986143, -79.106425959);
+	var bounds2 = new google.maps.LatLngBounds(swBound2, neBound2);
+
+	//3
+	var srcImage3 = "src/img/1996_OO_CLASSIFIED_Clip.png";
+	var swBound3 = new google.maps.LatLng(43.573546648, -79.645655506);
+	var neBound3 = new google.maps.LatLng(43.862986143, -79.106425959);
+	var bounds3 = new google.maps.LatLngBounds(swBound3, neBound3);
+	
+	//4
+	var srcImage4 = "src/img/2001_OO_CLASSIFIED_Clip.png";
+	var swBound4 = new google.maps.LatLng(43.573546648, -79.645655506);
+	var neBound4 = new google.maps.LatLng(43.862986143, -79.106425959);
+	var bounds4 = new google.maps.LatLngBounds(swBound4, neBound4);
+	
+	//5
+	var srcImage5 = "src/img/2006_OO_CLASSIFIED_Clip.png";
+	var swBound5 = new google.maps.LatLng(43.573546648, -79.645655506);
+	var neBound5 = new google.maps.LatLng(43.862986143, -79.106425959);
+	var bounds5 = new google.maps.LatLngBounds(swBound5, neBound5);
+
+	//6
+	var srcImage6 = "src/img/2011_OO_CLASSIFIED_Clip.png";
+	var swBound6 = new google.maps.LatLng(43.573546648, -79.645655506);
+	var neBound6 = new google.maps.LatLng(43.862986143, -79.106425959);
+	var bounds6 = new google.maps.LatLngBounds(swBound6, neBound6);
+
+	$(function() {
+		var handle = $( "#custom-handle" );
+		$( "#slidebar" ).slider({
+			max: 50,
+			min: 0,
+			value: 0,
+			step: 1,
+			create: function() {
+		    	handle.text( "1986" );
+		    },
+			slide: function( event, ui ) {
+				//console.log(ui.value);
+				$("#map-canvas img[src*='OO_CLASSIFIED']").css("opacity","0");
+
+				var upBndVal = 10;
+				var lyr1Val = 0;
+				var lyr2Val = 1;
+
+				if (ui.value > 0) {
+					upBndVal = Math.ceil(ui.value/10)*10;
+					lyr2Val	= upBndVal / 10;
+					lyr1Val = lyr2Val - 1;
+				}
+
+				if (lyr1Val > 0){
+					overlayArr[lyr1Val - 1].hide();
+				}
+
+				var transVal = (upBndVal-ui.value)/10;
+				$("#map-canvas img[src*='" + overlayArr[lyr1Val].image_ + "']").css("opacity", transVal * currentOpacityMod);
+
+				if (overlayArr[lyr1Val].div_.style.visibility == "hidden"){
+					overlayArr[lyr1Val].show();
+				}
+
+				overlayArr[lyr2Val].show();
+				$("#map-canvas img[src*='" + overlayArr[lyr2Val].image_ + "']").css("opacity", (1 - transVal) * currentOpacityMod);
+
+				//if(currentLyrVal !== lyr1Val) {
+				var tempVal = 0;
+				if (ui.value <= 9) {
+					tempVal = 0;
+				} else if (ui.value <= 19) {
+					tempVal = 1;
+				} else if (ui.value <= 29) {
+					tempVal = 2;
+				} else if (ui.value <= 39) {
+					tempVal = 3;
+				} else if (ui.value <= 49) {
+					tempVal = 4;
+				} else if (ui.value == 50) {
+					tempVal = 5;
+				}
+
+				if (tempVal != currentLyrVal){
+					currentLyrVal = tempVal;
+					makePieChart(landUsePctArr[currentLyrVal]);
+				}
+
+				var yrArr = [1986, 1991, 1996, 2001, 2006, 2011];
+				handle.text( yrArr[currentLyrVal] );
+
+			}
+		})
+		 .each(function() {
+
+		 	//
+		 	// Add labels to slider whose values 
+		 	// are specified by min, max and whose
+		 	// step is set to 1
+		 	//
+
+		 	// Get the options for this slider
+		 	var opt = $(this).data().uiSlider.options;
+
+		 	// Get the number of possible values
+		 	var vals = opt.max - opt.min;
+		 	var yrArr = [1986, 1991, 1996, 2001, 2006, 2011];
+		 	var cnt = 0;
+		 	// Space out values
+		 	for (var i = 0; i <= vals; i++) {
+
+			 		if (i/10%1 == 0) {
+
+				 		var el = $('<label>'+ yrArr[cnt] +'</label>').css('left',((i-1)/vals*100)+'%');
+				 		cnt += 1;
+				 		$( "#slidebar" ).append(el);
+				}
+		 	}
+		  
+		});
+	});
+
+	function makePieChart(inValArr) {
+		var pieData = {
+			labels: [
+			"Commercial",
+			"Residential",
+			"Vegetation",
+			"Agriculture",
+			"Water",
+			"Unclassified"
+			],
+			datasets: [
+			{
+				data: inValArr,
+				backgroundColor: [
+				"#C0320B",
+				"#FBFF71",
+				"#41B609",
+				"#AB7D39",
+				"#0170FE",
+				"#000000"
+				],
+				hoverBackgroundColor: [
+				"#C0320B",
+				"#FBFF71",
+				"#41B609",
+				"#AB7D39",
+				"#0170FE",
+				"#000000"
+				]
+			}]
+		};
+
+		var ctx = $("#myChart").get(0).getContext("2d");
+		var myPieChart = new Chart(ctx,{
+			type: 'pie',
+			data: pieData,
+			options: {
+		    	tooltips: {
+		    		callbacks: {
+		    			label: function (tt, d)	{
+		    				return " " + d.labels[tt.index] + " " + d.datasets[0].data[tt.index] + "%"
+		    			}
+		    		}
+		    	}
+		    }
+		});
+	}
+
+	function makeLineChart() {
+		var data = {
+		    labels: ["1986", "1991", "1996", "2001", "2006", "2011"],
+		    datasets: [
+		        {
+		            label: "Vegetation",
+		            fill: false,
+		            lineTension: 0.1,
+		            backgroundColor: "#41B609",
+		            borderColor: "#41B609",
+		            borderCapStyle: 'butt',
+		            borderDash: [],
+		            borderDashOffset: 0.0,
+		            borderJoinStyle: 'miter',
+		            pointBorderColor: "rgba(75,192,192,1)",
+		            pointBackgroundColor: "#fff",
+		            pointBorderWidth: 1,
+		            pointHoverRadius: 5,
+		            pointHoverBackgroundColor: "#41B609",
+		            pointHoverBorderColor: "rgba(220,220,220,1)",
+		            pointHoverBorderWidth: 2,
+		            pointRadius: 1,
+		            pointHitRadius: 10,
+		            data: [24.00, 23.46, 20.47, 22.99, 18.73, 18.71],
+		            spanGaps: false,
+		        }
+		    ]
+		};
+		var ctx = $("#myChart2").get(0).getContext("2d");
+		var myLineChart = new Chart(ctx, {
+		    type: 'line',
+		    data: data,
+		    options: {
+		    	tooltips: {
+		    		callbacks: {
+		    			label: function (tt, d)	{
+		    				return " " + tt.yLabel.toString() + "%"
+		    			}
+		    		}
+		    	}
+		    }
+		});
+	}
+
+	function makeLineChart2() {
+		var data = {
+		    labels: ["1986", "1991", "1996", "2001", "2006", "2011"],
+		    datasets: [
+		        {
+		            label: "Commercial",
+		            fill: false,
+		            lineTension: 0.1,
+		            backgroundColor: "#C0320B",
+		            borderColor: "#C0320B",
+		            borderCapStyle: 'butt',
+		            borderDash: [],
+		            borderDashOffset: 0.0,
+		            borderJoinStyle: 'miter',
+		            pointBorderColor: "rgba(75,192,192,1)",
+		            pointBackgroundColor: "#fff",
+		            pointBorderWidth: 1,
+		            pointHoverRadius: 5,
+		            pointHoverBackgroundColor: "#C0320B",
+		            pointHoverBorderColor: "rgba(220,220,220,1)",
+		            pointHoverBorderWidth: 2,
+		            pointRadius: 1,
+		            pointHitRadius: 10,
+		            data: [23.85, 22.98, 25.76, 26.19, 27.30, 27.30],
+		            spanGaps: false,
+		        }
+		    ]
+		};
+		var ctx = $("#myChart3").get(0).getContext("2d");
+		var myLineChart = new Chart(ctx, {
+		    type: 'line',
+		    data: data,
+		    options: {
+		    	tooltips: {
+		    		callbacks: {
+		    			label: function (tt, d)	{
+		    				return " " + tt.yLabel.toString() + "%"
+		    			}
+		    		}
+		    	}
+		    }
+		});
+	}
+
+	google.maps.event.addDomListener(window, 'load', initialize);
+
+</script>
+</head>
+
+  <body>
+  	<div id="cvsContainer">
+  		<canvas id="myChart"></canvas>
+  		<br/>
+  		<canvas id="myChart2"></canvas>
+  		<canvas id="myChart3"></canvas>
+  	</div>
+  	<div id="btnContainer">
+  		<input type="button" value="Change Opacity" id="b_opacity" onclick="opacityChangeClick();">
+  	</div>
+
+  	<div id="slidebarContainer">
+  		<div id="slidebar">
+  			<div id="custom-handle" class="ui-slider-handle" style="text-align: center; line-height: 20px; width: 50px; margin-left:-27px;"></div>
+  		</div>
+  	</div>
+
+  	<div id="map-canvas"></div>
+  </body>
+
+  <script>
+  	var currentLyrVal = 0;
+  	var landUsePctArr = [
+  			[23.85,49.60,24.00,1.40,1.14,0.01],
+  			[22.98,51.11,23.46,1.11,1.31,0.02],
+  			[25.76,51.64,20.47,1.04,1.04,0.06],
+  			[26.19,49.54,22.99,0.23,1.03,0.02],
+  			[26.25,52.98,18.73,0.87,1.10,0.07],
+  			[27.30,52.44,18.71,0.54,1.00,0.01]
+  		];
+  	makePieChart(landUsePctArr[0]);
+  	makeLineChart();
+  	makeLineChart2();
+  </script>
+
+</html>
