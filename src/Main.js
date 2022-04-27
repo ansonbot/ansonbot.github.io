@@ -37,11 +37,6 @@ function Main() {
               YoYoToronto
             </a>
           </li>
-          <li>
-              <Link to="/example">
-                <a href data-content="Test">Test</a>
-              </Link>
-          </li>
         </ul>
       </div>
 
