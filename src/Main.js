@@ -19,11 +19,16 @@ function Main() {
               LinkedIn
             </a>
           </li>
-          <li>
+          {/* <li>
             <a href="https://ansonnet.github.io/geovis/map.html" target="_blank" rel="noreferrer"
               title="GeoVisualization" data-content="Maps">
               Maps
             </a>
+          </li> */}
+          <li>
+              <Link to="/geovis">
+                <a href data-content="Maps">Maps</a>
+              </Link>
           </li>
           <li>
             <a href="http://www.500px.com/AKB48" target="_blank" rel="noreferrer"
@@ -37,6 +42,11 @@ function Main() {
               YoYoToronto
             </a>
           </li>
+          {/* <li>
+              <Link to="/example">
+                <a href data-content="Test">Test</a>
+              </Link>
+          </li> */}
         </ul>
       </div>
 
