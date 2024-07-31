@@ -1,6 +1,12 @@
 # ansonbot.github.io
 Website
 
+## Local Installation
+run \
+`export NODE_OPTIONS=--openssl-legacy-provider` in Terminal or \
+`$env:NODE_OPTIONS="--openssl-legacy-provider"` in PowerShell \
+to enble node 16-alpine support
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
